@@ -1,17 +1,42 @@
-import { Elysia } from "elysia";
+import {Elysia} from "elysia";
+import {t} from 'elysia'
 
 const store = new Elysia()
-	.state({ visitor: 0 })
+  .state({visitor: 0})
 
 const router = new Elysia()
-	.use(store)
-	.get('/increase', ({ store }) => store.visitor++)
+  .use(store)
+  .get('/increase', ({store}) => store.visitor++)
+
+abstract class Controller {
+  static greet({name}: { name: string }) {
+    return 'hello ' + name
+  }
+}
+
+abstract class Service {
+  static fibo(number: number): number {
+    if (number < 2)
+      return number
+
+    return Service.fibo(number - 1) + Service.fibo(number - 2)
+  }
+}
 
 const app = new Elysia()
   .use(router)
-  .get("/", () => "Hello Elysia").listen(3000);
-
-
+  .get("/", () => "Hello Elysia")
+  .post('/test', ({body}) => Controller.greet(body), {
+    body: t.Object({
+      name: t.String()
+    })
+  })
+  .get('/fibo', ({body}) => {
+    return Service.fibo(body)
+  }, {
+    body: t.Numeric()
+  })
+  .listen(3000);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
