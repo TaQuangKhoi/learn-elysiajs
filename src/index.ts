@@ -1,5 +1,6 @@
 import {Elysia} from "elysia";
 import {t} from 'elysia'
+import {customBody} from "./customerBody";
 
 const store = new Elysia()
   .state({visitor: 0})
@@ -58,6 +59,11 @@ const app = new Elysia()
   }, {
     body: t.Numeric()
   })
+  .post('/login', ({ body }) => {
+		return body
+	}, {
+		body: customBody
+	})
   .listen(3000);
 
 console.log(
