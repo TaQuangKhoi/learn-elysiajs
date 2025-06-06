@@ -1,6 +1,7 @@
 import {Elysia} from "elysia";
 import {t} from 'elysia'
 import {customBody} from "./customerBody";
+import {swagger} from '@elysiajs/swagger'
 
 const store = new Elysia()
   .state({visitor: 0})
@@ -24,30 +25,31 @@ abstract class Service {
   }
 }
 
-const AuthService = new Elysia({ name: 'Service.Auth' })
-  .derive({ as: 'scoped' }, ({ cookie: { session } }) => ({
-  	// This is equivalent to dependency injection
-      Auth: {
-          user: session.value
-      }
+const AuthService = new Elysia({name: 'Service.Auth'})
+  .derive({as: 'scoped'}, ({cookie: {session}}) => ({
+    // This is equivalent to dependency injection
+    Auth: {
+      user: session.value
+    }
   }))
-  .macro(({ onBeforeHandle }) => ({
-   	// This is declaring a service method
-      isSignIn(value: boolean) {
-          onBeforeHandle(({ Auth, status }) => {
-              if (!Auth?.user || !Auth.user) return status(401)
-          })
-      }
+  .macro(({onBeforeHandle}) => ({
+    // This is declaring a service method
+    isSignIn(value: boolean) {
+      onBeforeHandle(({Auth, status}) => {
+        if (!Auth?.user || !Auth.user) return status(401)
+      })
+    }
   }))
 
 const UserController = new Elysia()
   .use(AuthService)
-  .get('/profile', ({ Auth: { user } }) => user, {
-  	isSignIn: true
+  .get('/profile', ({Auth: {user}}) => user, {
+    isSignIn: true
   })
 
 const app = new Elysia()
   .use(router)
+  .use(swagger())
   .get("/", () => "Hello Elysia")
   .post('/test', ({body}) => Controller.greet(body), {
     body: t.Object({
@@ -59,11 +61,12 @@ const app = new Elysia()
   }, {
     body: t.Numeric()
   })
-  .post('/login', ({ body }) => {
-		return body
-	}, {
-		body: customBody
-	})
+  .post('/login', ({body}) => {
+    return body
+  }, {
+    body: customBody
+  })
+
   .listen(3000);
 
 console.log(
