@@ -23,6 +23,28 @@ abstract class Service {
   }
 }
 
+const AuthService = new Elysia({ name: 'Service.Auth' })
+  .derive({ as: 'scoped' }, ({ cookie: { session } }) => ({
+  	// This is equivalent to dependency injection
+      Auth: {
+          user: session.value
+      }
+  }))
+  .macro(({ onBeforeHandle }) => ({
+   	// This is declaring a service method
+      isSignIn(value: boolean) {
+          onBeforeHandle(({ Auth, status }) => {
+              if (!Auth?.user || !Auth.user) return status(401)
+          })
+      }
+  }))
+
+const UserController = new Elysia()
+  .use(AuthService)
+  .get('/profile', ({ Auth: { user } }) => user, {
+  	isSignIn: true
+  })
+
 const app = new Elysia()
   .use(router)
   .get("/", () => "Hello Elysia")
